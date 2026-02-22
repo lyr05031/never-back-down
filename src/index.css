@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* 加上黑色背景底色 */
+body {
+  background-color: #000;
+  color: #fff;
+}
