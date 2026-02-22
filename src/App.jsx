@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Landing from './components/Landing';
 import TheaterIntro from './components/TheaterIntro';
 import ChatRoom from './components/ChatRoom';
-import AdminDashboard from './components/AdminDashboard'; // 引入大屏
+import AdminDashboard from './components/AdminDashboard';
 import { Loader2 } from 'lucide-react';
 
 function App() {
@@ -10,14 +10,18 @@ function App() {
 
   const [mode, setMode] = useState(null);
   const [persona, setPersona] = useState(null);
-  const [extraPrompt, setExtraPrompt] = useState("");
+  // 【修改】：使用对象保存双向 Prompt
+  const [prompts, setPrompts] = useState({ bluePrompt: "", redPrompt: "" });
   const [apiConfig, setApiConfig] = useState(null);
+  const [userRole, setUserRole] = useState('judge');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleModeSelect = async (selectedMode, userExtraPrompt, config) => {
+  // 接收 Landing 传来的 {bluePrompt, redPrompt}
+  const handleModeSelect = async (selectedMode, userPrompts, config, role) => {
     setMode(selectedMode);
-    setExtraPrompt(userExtraPrompt);
+    setPrompts(userPrompts);
     setApiConfig(config);
+    setUserRole(role || 'judge');
     setIsLoading(true);
 
     try {
@@ -51,7 +55,7 @@ function App() {
         <div className="relative">
           <Landing
             onSelect={handleModeSelect}
-            onGoAdmin={() => setAppState('ADMIN')} // 进入数据大屏
+            onGoAdmin={() => setAppState('ADMIN')}
           />
           {isLoading && (
             <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
@@ -64,6 +68,8 @@ function App() {
 
       {appState === 'INTRO' && persona && (
         <TheaterIntro
+          mode={mode}
+          userRole={userRole}
           persona={persona}
           onComplete={handleIntroComplete}
           onBack={handleRestart}
@@ -73,14 +79,14 @@ function App() {
       {appState === 'BATTLE' && persona && (
         <ChatRoom
           mode={mode}
+          userRole={userRole}
           persona={persona}
-          extraPrompt={extraPrompt}
+          prompts={prompts} // 【传入双向 Prompt】
           apiConfig={apiConfig}
           onRestart={handleRestart}
         />
       )}
 
-      {/* 渲染数据大屏 */}
       {appState === 'ADMIN' && (
         <AdminDashboard onBack={handleRestart} />
       )}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react'; // 引入返回图标
+import { ArrowLeft } from 'lucide-react';
 
-export default function TheaterIntro({ persona, onComplete, onBack }) {
+export default function TheaterIntro({ mode, userRole, persona, onComplete, onBack }) {
     const data = persona || {
         A: "深夜看病的急诊病人",
         B: "睡迷糊的值班护士",
@@ -24,6 +24,31 @@ export default function TheaterIntro({ persona, onComplete, onBack }) {
         return () => clearTimeout(timer);
     }, [onComplete]);
 
+    // 【最高铁律 1】：狡辩者(B/蓝) 永远在左侧 / 上方
+    const partnerFinalTop = isMobile ? '18%' : '15%';
+    const partnerFinalLeft = isMobile ? '50%' : '15%';
+
+    // 【最高铁律 2】：法官(A/红) 永远在右侧 / 下方
+    const judgeFinalTop = isMobile ? '82%' : '15%';
+    const judgeFinalLeft = isMobile ? '50%' : '85%';
+
+    // 严格匹配身份文案
+    let labelA = "施压者";
+    let labelB = "狡辩者";
+    let middleText = "狡辩者刚刚在施压者面前，";
+
+    if (mode === 'HALF') {
+        if (userRole === 'judge') {
+            labelA = "你";
+            labelB = "对手";
+            middleText = "对手刚刚在你面前，";
+        } else {
+            labelA = "对手";
+            labelB = "你";
+            middleText = "你刚刚在对方面前，";
+        }
+    }
+
     return (
         <motion.div
             className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center font-sans"
@@ -33,7 +58,6 @@ export default function TheaterIntro({ persona, onComplete, onBack }) {
         >
             <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800 via-black to-black"></div>
 
-            {/* 【新增】：返回大厅按钮 */}
             <button
                 onClick={onBack}
                 className="absolute z-50 top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-white transition-colors hover:bg-white/10 p-2 rounded-lg"
@@ -42,15 +66,15 @@ export default function TheaterIntro({ persona, onComplete, onBack }) {
                 <span className="hidden md:inline text-xs font-bold tracking-widest uppercase">返回大厅</span>
             </button>
 
-            {/* 1. 对方 (Judge) */}
+            {/* 蓝方 (狡辩者 B) - 飞向左上 */}
             <motion.div
-                className="absolute z-20 text-red-500 font-black tracking-widest flex flex-col items-center"
+                className="absolute z-20 text-cyan-500 font-black tracking-widest flex flex-col items-center"
                 initial={{ opacity: 0, scale: isMobile ? 1.2 : 2, top: '50%', left: '50%', x: '-50%', y: '-50%' }}
                 animate={{
                     opacity: [0, 1, 1, 1],
                     scale: [isMobile ? 1.2 : 2, 1, 1, isMobile ? 0.7 : 0.45],
-                    top: ['50%', '50%', '50%', isMobile ? '18%' : '15%'],
-                    left: ['50%', '50%', '50%', isMobile ? '50%' : '15%'],
+                    top: ['50%', '50%', '50%', partnerFinalTop],
+                    left: ['50%', '50%', '50%', partnerFinalLeft],
                     x: ['-50%', '-50%', '-50%', '-50%'],
                     y: ['-50%', '-50%', '-50%', '-50%']
                 }}
@@ -59,24 +83,24 @@ export default function TheaterIntro({ persona, onComplete, onBack }) {
                 <motion.div
                     animate={{ opacity: [1, 1, 0] }}
                     transition={{ duration: 8, times: [0, 0.8, 1] }}
-                    className="text-lg md:text-2xl text-red-300 mb-1 md:mb-2 uppercase tracking-[0.5em] drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]"
+                    className="text-lg md:text-2xl text-cyan-300 mb-1 md:mb-2 uppercase tracking-[0.5em] drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]"
                 >
-                    对方
+                    {labelB}
                 </motion.div>
-                <div className="text-3xl md:text-5xl lg:text-7xl whitespace-nowrap drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]">
-                    {data.A}
+                <div className="text-3xl md:text-5xl lg:text-7xl whitespace-nowrap drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+                    {data.B}
                 </div>
             </motion.div>
 
-            {/* 2. 你 (You) */}
+            {/* 红方 (法官 A) - 飞向右下 */}
             <motion.div
-                className="absolute z-20 text-cyan-500 font-black tracking-widest flex flex-col items-center"
+                className="absolute z-20 text-red-500 font-black tracking-widest flex flex-col items-center"
                 initial={{ opacity: 0, scale: isMobile ? 1.2 : 2, top: '50%', left: '50%', x: '-50%', y: '-50%' }}
                 animate={{
                     opacity: [0, 1, 1, 1],
                     scale: [isMobile ? 1.2 : 2, 1, 1, isMobile ? 0.7 : 0.45],
-                    top: ['50%', '50%', '50%', isMobile ? '82%' : '15%'],
-                    left: ['50%', '50%', '50%', isMobile ? '50%' : '85%'],
+                    top: ['50%', '50%', '50%', judgeFinalTop],
+                    left: ['50%', '50%', '50%', judgeFinalLeft],
                     x: ['-50%', '-50%', '-50%', '-50%'],
                     y: ['-50%', '-50%', '-50%', '-50%']
                 }}
@@ -85,26 +109,24 @@ export default function TheaterIntro({ persona, onComplete, onBack }) {
                 <motion.div
                     animate={{ opacity: [1, 1, 0] }}
                     transition={{ duration: 5.5, delay: 2.5, times: [0, 0.8, 1] }}
-                    className="text-lg md:text-2xl text-cyan-300 mb-1 md:mb-2 uppercase tracking-[0.5em] drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]"
+                    className="text-lg md:text-2xl text-red-300 mb-1 md:mb-2 uppercase tracking-[0.5em] drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]"
                 >
-                    你
+                    {labelA}
                 </motion.div>
-                <div className="text-3xl md:text-5xl lg:text-7xl whitespace-nowrap drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                    {data.B}
+                <div className="text-3xl md:text-5xl lg:text-7xl whitespace-nowrap drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+                    {data.A}
                 </div>
             </motion.div>
 
-            {/* 3. 前置语 */}
             <motion.div
                 className="absolute z-30 text-gray-400 text-lg md:text-2xl font-bold tracking-widest text-center w-full px-4"
                 initial={{ opacity: 0, top: '40%', y: '-50%' }}
                 animate={{ opacity: [0, 1, 1, 0], scale: [0.9, 1, 1, 0.9], y: ['-50%', '-50%', '-50%', '-50%'] }}
                 transition={{ duration: 2.5, delay: 5.5, times: [0, 0.2, 0.8, 1], ease: "easeInOut" }}
             >
-                你刚刚在对方面前，
+                {middleText}
             </motion.div>
 
-            {/* 4. 惨状 */}
             <motion.div
                 className="absolute z-30 flex flex-col items-center w-full px-6 md:px-10"
                 initial={{ opacity: 0, scale: 0.2, top: '55%', y: '-50%' }}

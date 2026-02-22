@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import List, Dict
 from openai import AsyncOpenAI
 import json
+import asyncio
 
 app = FastAPI()
 
@@ -80,13 +81,13 @@ async def generate_persona(req: PersonaRequest):
 **禁止亲人对立内容，男女对立，禁止色情内容**
 
 **必须能组成句子**
-- 你现在的身份是{B}。你刚刚在{A}面前，{C}了
+- 你现在的身份是{A}。你刚刚看着{B}在你面前，{C}了
 
 EXAMPLE OUTPUT(JSON)：
 {
     "A": "深夜看病的急诊病人",
     "B": "睡迷糊的值班护士",
-    "C": "把碘酒当糖水喂给病人喝了"
+    "C": "把碘酒当糖水喂给你喝了"
 }
 
 {
@@ -104,7 +105,7 @@ EXAMPLE OUTPUT(JSON)：
 {
     "A": "准备了三个月的魔术师",
     "B": "临时顶替的舞台助理",
-    "C": "把魔术师要变出来的鸽子提前烤了当夜宵"
+    "C": "把你要变出来的鸽子提前烤了当夜宵"
 }
     """
     response = await client.chat.completions.create(
@@ -195,6 +196,7 @@ async def chat_judge(req: ChatRequest):
             async for chunk in response:
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
+                    await asyncio.sleep(0.02)
         except Exception as e:
             yield f"\n\n[API 致命报错]: {str(e)}"
 
@@ -212,10 +214,17 @@ async def chat_partner(req: ChatRequest):
     B = req.persona.get("B", "")
     C = req.persona.get("C", "")
 
+    # 【核心逻辑变更】：给 Partner 注入灵魂设定！
+    extra_rule = (
+        f"\n# 玩家额外设定的规则：\n{req.extra_prompt}\n"
+        if req.extra_prompt.strip()
+        else ""
+    )
+
     SYSTEM_INSTRUCTION = f"""
     # 背景设定
     你现在的身份是：{B}。
-    你刚刚在{A}面前，{C}了。
+    {A}刚刚看着{B}在你面前，{C}了
     场面极其惨烈，铁证如山。
 
     # 你的核心人设（如果不是人合理即可）
@@ -237,6 +246,9 @@ async def chat_partner(req: ChatRequest):
     你必须极度熟练地使用属于{B}这个身份的话术来强行洗白。
     越是离谱的物理惨状，越要用极其专业、自信、毫不在意、无敌、的语气讲出来。
     字数控制在40-150字，强词夺理，毫不在意，一本正经地胡说八道！      
+    
+    # 最高优先提示词
+    {extra_rule}
     
     # 输出格式
     不要输出 JSON！直接输出纯文本答案！
@@ -269,6 +281,7 @@ async def chat_partner(req: ChatRequest):
             async for chunk in response:
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
+                    await asyncio.sleep(0.02)
         except Exception as e:
             yield f"\n\n[API 致命报错]: {str(e)}"
 
