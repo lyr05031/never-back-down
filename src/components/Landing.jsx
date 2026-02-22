@@ -10,10 +10,10 @@ const PRESETS = {
         default_temps: { persona: 1.6, judge: 1.5, partner: 1.5 }
     },
     gemini: {
-        api_key: "YOU API KEY",
+        api_key: "YOUR API KEY",
         base_url: "https://generativelanguage.googleapis.com/v1beta/openai/",
         model_name: "gemini-3-flash-preview",
-        default_temps: { persona: 1.2, judge: 1.2, partner: 1.2 }
+        default_temps: { persona: 1.1, judge: 1.1, partner: 1.1 }
     }
 };
 
@@ -181,12 +181,18 @@ export default function Landing({ onSelect, onGoAdmin }) {
                             <div className="flex gap-2 mb-6 p-1 bg-black/50 rounded-lg border border-white/5">
                                 {['deepseek', 'gemini', 'custom'].map((prov) => (
                                     <button
-                                        key={prov} type="button"
+                                        key={prov}
+                                        type="button"
                                         onClick={() => handleEngineChange(prov)}
                                         className={`flex-1 py-2 rounded-md text-xs md:text-sm font-bold tracking-widest uppercase transition-all ${engine === prov ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.2)]' : 'text-gray-500 hover:text-gray-300'
                                             }`}
                                     >
-                                        {prov}
+                                        {/* 核心魔法：如果是 gemini，就在显示时加上 (推荐)，其他照旧 */}
+                                        {prov === 'gemini' ? (
+                                            <span className="flex items-center justify-center gap-1">
+                                                GEMINI <span className="text-[10px] text-yellow-500/90">(推荐)</span>
+                                            </span>
+                                        ) : prov}
                                     </button>
                                 ))}
                             </div>
@@ -210,26 +216,26 @@ export default function Landing({ onSelect, onGoAdmin }) {
                             <div className="space-y-4 pt-4 border-t border-white/10">
                                 <div className="flex items-center gap-2 text-orange-400 mb-2">
                                     <Thermometer className="w-4 h-4" />
-                                    <span className="text-sm font-bold tracking-widest uppercase">精神状态调节 (Temperature)</span>
+                                    <span className="text-sm font-bold tracking-widest uppercase">Temperature（随机度） 调节</span>
                                 </div>
 
                                 <div>
                                     <div className="flex justify-between text-xs text-gray-400 mb-1">
-                                        <span>生成剧本惨状</span>
+                                        <span>生成剧本</span>
                                         <span className="font-mono text-cyan-400">{temps.persona}</span>
                                     </div>
                                     <input type="range" min="0" max="2" step="0.1" value={temps.persona} onChange={(e) => setTemps({ ...temps, persona: e.target.value })} className="w-full accent-cyan-500" />
                                 </div>
                                 <div>
                                     <div className="flex justify-between text-xs text-gray-400 mb-1">
-                                        <span>对手狂怒程度</span>
+                                        <span>对手 temperature</span>
                                         <span className="font-mono text-red-400">{temps.judge}</span>
                                     </div>
                                     <input type="range" min="0" max="2" step="0.1" value={temps.judge} onChange={(e) => setTemps({ ...temps, judge: e.target.value })} className="w-full accent-red-500" />
                                 </div>
                                 <div>
                                     <div className="flex justify-between text-xs text-gray-400 mb-1">
-                                        <span>AI 死鸭子嘴硬程度</span>
+                                        <span>AI temperature</span>
                                         <span className="font-mono text-blue-400">{temps.partner}</span>
                                     </div>
                                     <input type="range" min="0" max="2" step="0.1" value={temps.partner} onChange={(e) => setTemps({ ...temps, partner: e.target.value })} className="w-full accent-blue-500" />

@@ -56,7 +56,7 @@ function App() {
           {isLoading && (
             <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
               <Loader2 className="w-12 h-12 text-cyan-500 animate-spin mb-4" />
-              <p className="text-white text-xl tracking-widest font-bold animate-pulse">系统正在生成致命惨状...</p>
+              <p className="text-white text-xl tracking-widest font-bold animate-pulse">系统正在生成剧本...</p>
             </div>
           )}
         </div>

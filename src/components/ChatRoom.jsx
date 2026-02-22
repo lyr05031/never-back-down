@@ -99,7 +99,7 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
                     const lastIndex = newMsgs.length - 1;
                     newMsgs[lastIndex] = {
                         ...newMsgs[lastIndex],
-                        content: newMsgs[lastIndex].content + `\n\n🚨 前端连接崩溃！原因：${e.message}`,
+                        content: newMsgs[lastIndex].content + `\n\n前端连接崩溃！原因：${e.message}`,
                         isError: true
                     };
                     return newMsgs;
@@ -114,7 +114,7 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
                     if (!lastMsg.content.trim() && !lastMsg.isError) {
                         newMsgs[newMsgs.length - 1] = {
                             ...lastMsg,
-                            content: "🚨 无法获取回复！\n(提示：如果您在使用 Gemini，由于您的 Prompt 中包含'极度暴躁'、'骂人'等字眼，极大概率触发了 Google 极其严格的安全拦截(Safety Filter)，导致 API 拒绝输出任何文字。您可以通过修改 Prompt 让语气稍微温和来验证这一点)",
+                            content: "无法获取回复！\n",
                             isError: true
                         };
                         setIsEnded(true);
@@ -128,14 +128,17 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
     };
 
     const checkEnd = (msgs) => {
+        // 1. 如果发生报错，立即结束
         if (msgs.length > 0 && msgs[msgs.length - 1].isError) {
             setIsEnded(true);
             return true;
         }
-        if (msgs.length >= 12 && !isEnded) {
+        // 2. 如果是无人模式（电子斗蛐蛐），保留 6 轮（12句）限制，防止把 API 余额抽干
+        if (mode === 'AUTO' && msgs.length >= 12 && !isEnded) {
             setIsEnded(true);
             return true;
         }
+        // 3. 如果是人类亲自对线模式（HALF），直接放行！无限对喷！
         return false;
     };
 
@@ -191,7 +194,8 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
     };
 
     return (
-        <div className="flex flex-col w-screen h-screen font-sans overflow-hidden relative bg-[#050505]">
+        // 【核心修复 1】：h-[100dvh] 完美适配手机浏览器动态高度，再也不会被顶出屏幕
+        <div className="flex flex-col w-screen h-[100dvh] font-sans overflow-hidden relative bg-[#050505]">
 
             <div
                 className="absolute inset-0 pointer-events-none z-0"
@@ -202,12 +206,14 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
                 }}
             ></div>
 
-            <div className="relative z-20 flex flex-col items-center justify-center w-full py-3 md:py-4 bg-black/40 backdrop-blur-xl border-b border-red-900/30 shadow-[0_4px_30px_rgba(0,0,0,0.5)] px-4">
+            {/* 【核心修复 2】：flex-shrink-0 保证标题栏永远不会被压缩，px-12 腾出返回按钮的空间 */}
+            <div className="relative z-20 flex-shrink-0 flex flex-col items-center justify-center w-full py-3 md:py-4 bg-black/60 backdrop-blur-xl border-b border-red-900/30 shadow-[0_4px_30px_rgba(0,0,0,0.5)] px-14 md:px-24">
 
+                {/* 常驻左上角的返回按钮 */}
                 <button
                     onClick={handleBack}
                     title="终止对话并返回大厅"
-                    className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 flex items-center gap-1 md:gap-2 text-gray-500 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+                    className="absolute left-2 md:left-6 top-3 md:top-1/2 md:-translate-y-1/2 flex items-center gap-1 md:gap-2 text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10 z-50"
                 >
                     <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
                     <span className="hidden md:inline text-xs font-bold tracking-widest uppercase">返回大厅</span>
@@ -218,7 +224,9 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
                     <span>CRITICAL SITUATION</span>
                     <AlertTriangle className="w-3 h-3 md:w-4 md:h-4" />
                 </div>
-                <div className="text-gray-100 text-sm md:text-lg font-bold tracking-widest text-center truncate w-full max-w-2xl lg:max-w-4xl drop-shadow-md">
+
+                {/* 【核心修复 3】：去除 truncate，改为 break-words 自动换行 */}
+                <div className="text-gray-100 text-xs md:text-lg font-bold tracking-widest text-center break-words w-full max-w-2xl lg:max-w-4xl drop-shadow-md">
                     {data.C}
                 </div>
             </div>
@@ -239,7 +247,9 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
                             className={`flex w-full ${isJudge ? 'justify-start' : 'justify-end'}`}
                         >
                             <div className={`max-w-[85%] md:max-w-[65%] flex flex-col ${isJudge ? 'items-start' : 'items-end'}`}>
-                                <span className={`text-xs md:text-sm mb-1 md:mb-2 tracking-widest uppercase font-black ${isJudge ? 'text-red-500/80 ml-2' : 'text-cyan-500/80 mr-2'}`}>
+
+                                {/* 【核心修复 4】：允许角色名字换行，缩小手机端名字字号 */}
+                                <span className={`text-[10px] md:text-sm mb-1 md:mb-2 tracking-widest uppercase font-black break-words leading-tight ${isJudge ? 'text-red-500/80 ml-2 text-left' : 'text-cyan-500/80 mr-2 text-right'}`}>
                                     {isJudge ? data.A : data.B}
                                 </span>
 
@@ -262,12 +272,11 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
                 <div ref={messagesEndRef} className="h-6" />
             </div>
 
-            <div className="relative z-10 w-full p-4 md:p-6 border-t border-white/5 bg-black/20 backdrop-blur-xl">
+            <div className="relative z-10 flex-shrink-0 w-full p-4 md:p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl">
                 {isEnded ? (
                     <div className="flex flex-col md:flex-row justify-between items-center w-full max-w-5xl mx-auto py-2">
                         <div className="flex items-center gap-3 text-red-500 mb-4 md:mb-0 animate-pulse">
                             <AlertTriangle className="w-6 h-6" />
-                            {/* 文案修改：法官 -> 对手 */}
                             <span className="font-black tracking-widest text-lg md:text-xl uppercase">
                                 {messages.length > 0 && messages[messages.length - 1].isError ? "系统崩溃 · 对线异常终止" : "对手已被气晕 · 对线终止"}
                             </span>
@@ -276,14 +285,14 @@ export default function ChatRoom({ mode, persona, extraPrompt, apiConfig, onRest
                             onClick={handleBack}
                             className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold tracking-widest uppercase rounded-full transition-all border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)]"
                         >
-                            <RotateCcw className="w-5 h-5" /> 返回大厅重启
+                            <RotateCcw className="w-5 h-5" /> 返回大厅
                         </button>
                     </div>
                 ) : isThinking ? (
                     <div className="flex justify-center items-center text-gray-400 space-x-3 py-3 md:py-4">
                         <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
                         <span className="tracking-[0.2em] md:tracking-[0.3em] text-sm md:text-lg uppercase font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-cyan-500 animate-pulse">
-                            AI 血压飙升输入中...
+                            AI 输入中...
                         </span>
                     </div>
                 ) : mode === 'HALF' ? (
